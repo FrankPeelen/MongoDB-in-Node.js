@@ -7,7 +7,49 @@ MongoClient.connect(
 	function(err, connection) {
 		var collection = connection.collection('customers');
 
-		collection.update(
+		var doFind = function (callback) {
+			collection.find().toArray(function (err, documents) {
+				console.dir(documents);
+				callback();
+			});
+		};
+
+		var doInsert = function (i) {
+			if (i < 20) {
+				var value = Math.floor(Math.random() * 10);
+				collection.insert(
+					{'n': '#' + i, 'v': value},
+					function (err, count) {
+						doInsert(i + 1);
+					});
+			} else {
+				console.log();
+				console.log('Inserted', i, 'documents:');
+				doFind(function () {
+					doUpdate();
+				});
+			}
+		};
+
+		var doUpdate = function () {
+			collection.update(
+				{'v': {'$gt': 5}},
+				{'$set': {'valuable': true}},
+				{'multi': true},
+				function (err, count) {
+					console.log();
+					console.log('Updated', count, 'documents:');
+					doFind(function () {
+						collection.remove({}, function () {
+							connection.close();
+						});
+					});
+				});
+		};
+
+		doInsert(0);
+
+		/*collection.update(
 			{},
 			{'$set': {'age': 24}},
 			{'multi' : true},
@@ -18,7 +60,7 @@ MongoClient.connect(
 					connection.close();
 				});
 			}
-		);
+		);*/
 
 		/*collection.insert({'name': 'Jane Doe'}, function(err, count) {
 			collection.find().toArray(function(err, documents) {

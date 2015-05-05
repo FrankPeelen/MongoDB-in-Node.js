@@ -8,7 +8,7 @@ MongoClient.connect(
 		var collection = connection.collection('customers');
 
 		var doFind = function (callback) {
-			collection.find().toArray(function (err, documents) {
+			collection.find({}, {'limit': 5, 'sort': 'v'}).toArray(function (err, documents) {
 				console.dir(documents);
 				callback();
 			});
